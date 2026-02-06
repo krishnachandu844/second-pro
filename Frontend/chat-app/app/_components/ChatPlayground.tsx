@@ -83,22 +83,6 @@ export default function ChatPlayground() {
     }
   }, [ws, roomId]);
 
-  // useEffect(() => {
-  //   if (!ws) return;
-
-  //   ws.onmessage = (e) => {
-  //     // setMessages((prev) => [...prev, { type: "server", message: e.data }]);
-
-  //     const parsedData = JSON.parse(e.data);
-  //     switch (parsedData.type) {
-  //     }
-  //   };
-
-  //   return () => {
-  //     ws.onmessage = null;
-  //   };
-  // }, [ws]);
-
   if (ws == null) {
     return (
       <div className='bg-card w-full rounded-md flex-1 flex flex-col items-center justify-center ml-auto'>
