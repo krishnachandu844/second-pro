@@ -69,7 +69,15 @@ wss.on("connection", function connection(ws, req) {
         const room = rooms.filter((r) => r.roomId == ParsedData.roomId);
         room.map((r) => {
           if (r.roomId == ParsedData.roomId && r.socket != ws) {
-            r.socket.send(ParsedData.message);
+            r.socket.send(
+              JSON.stringify({
+                type: "message",
+                senderId: currentUserId,
+                receiverId: ParsedData.receiverId,
+                roomId: ParsedData.roomId,
+                message: ParsedData.message,
+              }),
+            );
           }
         });
         break;
@@ -79,7 +87,6 @@ wss.on("connection", function connection(ws, req) {
   });
 
   ws.on("close", () => {
-    console.log("WebSocket Closed: ", currentUserId);
     onlineUsers = onlineUsers.filter((u) => u.userId !== String(currentUserId));
     broadCastOnlineUsers();
   });

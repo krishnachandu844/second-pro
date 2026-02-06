@@ -9,6 +9,7 @@ export const useWebSocket = () => {
   const token = Cookies.get("token");
 
   const setOnlineUsers = useChatStore((state) => state.setOnlineUsers);
+  const setMessages = useChatStore((state) => state.setMessages);
 
   useEffect(() => {
     if (!token) return;
@@ -23,6 +24,10 @@ export const useWebSocket = () => {
         switch (parsed.type) {
           case "activeUsers":
             setOnlineUsers(parsed.onlineUsers);
+            break;
+          case "message":
+            console.log(parsed);
+            setMessages(parsed);
             break;
         }
       } catch {

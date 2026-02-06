@@ -3,18 +3,6 @@ const userSchema = new mongoose.Schema({
     email: String,
     username: String,
     password: String,
-    rooms: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Room",
-        },
-    ],
-    messages: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Message",
-        },
-    ],
 });
 const roomSchema = new mongoose.Schema({
     roomId: {

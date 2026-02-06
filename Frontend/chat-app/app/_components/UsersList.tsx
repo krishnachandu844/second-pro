@@ -12,7 +12,7 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import Loader from "@/Spinners/TailSpin";
 import { useUserStore } from "@/store/useUserStore";
-import { User } from "@/Types/UserTypes";
+import { User } from "@/Types/types";
 import {
   Tooltip,
   TooltipContent,
@@ -85,10 +85,13 @@ export default function UsersList() {
             key={index}
             className={cn(
               `flex items-center gap-4 hover:bg-primary/40 border-b p-4 cursor-pointer transition-all duration-150`,
-              selectedUser == u.username && "bg-primary/80",
+              selectedUser?.username == u.username && "bg-primary/80",
             )}
             onClick={() => {
-              setSelectedUser(u.username);
+              setSelectedUser({
+                _id: u._id,
+                username: u.username,
+              });
             }}
           >
             <div className='relative'>

@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import useSocket from "@/hooks/useSocket";
+// import useSocket from "@/hooks/useSocket";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { cn } from "@/lib/utils";
 import MessageSpinner from "@/Spinners/MessageSpinner";
@@ -28,28 +28,37 @@ interface MessageType {
 
 export default function ChatPlayground() {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<MessageType[]>([]);
+  // const [messages, setMessages] = useState<MessageType[]>([]);
   const user = useUserStore((state) => state.user);
   const selectedUser = useChatStore((state) => state.selectedUser);
+  const setMessages = useChatStore((state) => state.setMessages);
+  const messages = useChatStore((state) => state.messages);
   const { client } = useWebSocket();
   const ws = client?.socket;
 
-  const roomId = [user?.username, selectedUser].sort().join("_");
+  const roomId = [user?.username, selectedUser?.username].sort().join("_");
 
-  // const onClicksendMessage = () => {
-  //   if (!socket && !message.trim()) return;
-  //   if (socket) {
-  //     socket.send(
-  //       JSON.stringify({
-  //         type: "chat",
-  //         roomId,
-  //         message,
-  //       }),
-  //     );
-  //   }
-  //   setMessages((prev) => [...prev, { type: "client", message }]);
-  //   setMessage("");
-  // };
+  const onClicksendMessage = () => {
+    if (!ws && !message.trim() && selectedUser && user) return;
+    if (ws) {
+      ws.send(
+        JSON.stringify({
+          type: "chat",
+          receiverId: selectedUser?._id,
+          roomId,
+          message,
+        }),
+      );
+    }
+    const data = {
+      senderId: user?._id!,
+      receiverId: selectedUser?._id!,
+      roomId,
+      message,
+    };
+    setMessages(data);
+    setMessage("");
+  };
 
   //Sending Status Update
   useEffect(() => {
@@ -63,16 +72,16 @@ export default function ChatPlayground() {
   }, [ws]);
 
   //Sending Join Room
-  // useEffect(() => {
-  //   if (socket && selectedUser && user) {
-  //     socket.send(
-  //       JSON.stringify({
-  //         type: "join",
-  //         roomId,
-  //       }),
-  //     );
-  //   }
-  // }, [socket, roomId]);
+  useEffect(() => {
+    if (ws && selectedUser && user) {
+      ws.send(
+        JSON.stringify({
+          type: "join",
+          roomId,
+        }),
+      );
+    }
+  }, [ws, roomId]);
 
   // useEffect(() => {
   //   if (!ws) return;
@@ -106,10 +115,10 @@ export default function ChatPlayground() {
           <div className='flex gap-x-4 items-center'>
             <Avatar className='w-10 h-10'>
               <AvatarFallback className='font-bold'>
-                {selectedUser[0]}
+                {selectedUser.username[0]}
               </AvatarFallback>
             </Avatar>
-            <h1 className='text-xl font-semibold '>{selectedUser}</h1>
+            <h1 className='text-xl font-semibold '>{selectedUser.username}</h1>
           </div>
           <div className='flex items-center gap-x-6'>
             <Button variant={"secondary"}>
@@ -129,15 +138,14 @@ export default function ChatPlayground() {
               key={index}
               className={cn(
                 "flex flex-col p-3 m-2 w-fit rounded-md",
-                m.type == "client" && "bg-primary ml-auto text-white",
-                m.type == "server" && "",
+                m.senderId == user?._id ? "bg-primary ml-auto text-white" : "",
               )}
             >
-              {m.type == "server" ? (
+              {m.receiverId !== selectedUser?._id ? (
                 <div className='flex items-center -ml-6'>
                   <Avatar className='w-8 h-8'>
                     <AvatarFallback className='font-bold'>
-                      {selectedUser[0]}
+                      {selectedUser.username[0]}
                     </AvatarFallback>
                   </Avatar>
                   <p className='bg-secondary p-3 m-2 w-fit rounded-md'>
@@ -148,6 +156,8 @@ export default function ChatPlayground() {
                 <p>{m.message}</p>
               )}
             </div>
+
+            // <div key={index}>{m.message}</div>
           ))}
         </div>
         {/* SendMessage */}
@@ -160,13 +170,13 @@ export default function ChatPlayground() {
             }}
             onKeyDown={(e) => {
               if (e.key == "Enter") {
-                // onClicksendMessage();
+                onClicksendMessage();
               }
             }}
           />
-          {/* <Button onClick={onClicksendMessage}>
+          <Button onClick={onClicksendMessage}>
             <Send />
-          </Button> */}
+          </Button>
         </div>
       </div>
     </div>

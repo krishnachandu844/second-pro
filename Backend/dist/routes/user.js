@@ -60,9 +60,7 @@ router.get("/users", authMiddleWare, async (req, res) => {
     try {
         const usersList = await User.find({
             _id: { $ne: userId },
-        })
-            .select("-password")
-            .populate("rooms");
+        }).select("-password");
         return res.status(200).json({ usersList });
     }
     catch (error) {

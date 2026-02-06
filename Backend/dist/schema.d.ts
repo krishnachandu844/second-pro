@@ -1,23 +1,17 @@
 import mongoose from "mongoose";
 export declare const User: mongoose.Model<{
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;
 }, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;
@@ -28,22 +22,16 @@ export declare const User: mongoose.Model<{
 }, "id"> & {
     id: string;
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, mongoose.DefaultSchemaOptions, {
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;
 }, mongoose.Document<unknown, {}, {
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;
 }, {
     id: string;
 }, mongoose.ResolveSchemaOptions<mongoose.DefaultSchemaOptions>> & Omit<{
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;
@@ -57,16 +45,12 @@ export declare const User: mongoose.Model<{
     [path: string]: mongoose.SchemaDefinitionProperty<undefined, any, any>;
 } | {
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
-        rooms: mongoose.Types.ObjectId[];
-        messages: mongoose.Types.ObjectId[];
         email?: string | null;
         username?: string | null;
         password?: string | null;
     }, {
         id: string;
     }, mongoose.ResolveSchemaOptions<mongoose.DefaultSchemaOptions>> & Omit<{
-        rooms: mongoose.Types.ObjectId[];
-        messages: mongoose.Types.ObjectId[];
         email?: string | null;
         username?: string | null;
         password?: string | null;
@@ -78,8 +62,6 @@ export declare const User: mongoose.Model<{
         id: string;
     }> | undefined;
 }, {
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;
@@ -88,8 +70,6 @@ export declare const User: mongoose.Model<{
 } & {
     __v: number;
 }>, {
-    rooms: mongoose.Types.ObjectId[];
-    messages: mongoose.Types.ObjectId[];
     email?: string | null;
     username?: string | null;
     password?: string | null;

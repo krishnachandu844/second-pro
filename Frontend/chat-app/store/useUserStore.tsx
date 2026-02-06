@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import Cookies from "js-cookie";
 import axios from "axios";
-import { User } from "@/Types/UserTypes";
+import { User } from "@/Types/types";
 
 interface UserStoreType {
   user: User | null;
