@@ -9,6 +9,7 @@ export interface MessageType {
   senderId: string;
   receiverId: string;
   message: string;
+  createdAt: Date;
 }
 
 export interface SelectedUserType {

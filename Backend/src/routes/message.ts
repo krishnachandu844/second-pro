@@ -6,8 +6,7 @@ import mongoose from "mongoose";
 const router = express.Router();
 
 router.post("/send", authMiddleWare, async (req, res) => {
-  const { roomId, message, receiverId } = req.body;
-  const senderId = req.userId;
+  const { roomId, message, senderId, receiverId } = req.body;
 
   const session = await mongoose.startSession();
 
@@ -59,10 +58,19 @@ router.post("/send", authMiddleWare, async (req, res) => {
   }
 });
 
-router.get("/chats", authMiddleWare, async (req, res) => {
-  const { roomId } = req.body;
+router.get("/chats/:roomId", authMiddleWare, async (req, res) => {
+  const { roomId } = req.params;
+
+  if (!roomId) {
+    return res.status(400).json({ message: "roomId is required" });
+  }
+  const room = await Room.findOne({ roomId });
+  if (!room) {
+    return res.status(400).json({ message: "Room Doesn't Exist" });
+  }
+
   try {
-    const messages = await Message.find({ roomId });
+    const messages = await Message.find({ roomId: room?._id });
     if (messages) {
       return res.status(200).json({ messages });
     } else {

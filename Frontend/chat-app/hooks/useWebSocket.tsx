@@ -10,6 +10,7 @@ export const useWebSocket = () => {
 
   const setOnlineUsers = useChatStore((state) => state.setOnlineUsers);
   const setMessages = useChatStore((state) => state.setMessages);
+  const sendMessage = useChatStore((state) => state.sendMessage);
 
   useEffect(() => {
     if (!token) return;
@@ -26,8 +27,8 @@ export const useWebSocket = () => {
             setOnlineUsers(parsed.onlineUsers);
             break;
           case "message":
-            console.log(parsed);
             setMessages(parsed);
+            sendMessage(parsed);
             break;
         }
       } catch {

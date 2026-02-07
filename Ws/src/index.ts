@@ -76,6 +76,7 @@ wss.on("connection", function connection(ws, req) {
                 receiverId: ParsedData.receiverId,
                 roomId: ParsedData.roomId,
                 message: ParsedData.message,
+                createdAt: ParsedData.createdAt,
               }),
             );
           }

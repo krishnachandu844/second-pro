@@ -5,59 +5,80 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import useSocket from "@/hooks/useSocket";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { cn } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 import MessageSpinner from "@/Spinners/MessageSpinner";
 import Loader from "@/Spinners/TailSpin";
 import { useChatStore } from "@/store/useChatStore";
 import { useUserStore } from "@/store/useUserStore";
 import { Separator } from "@radix-ui/react-separator";
-import {
-  Divide,
-  EllipsisIcon,
-  PhoneCallIcon,
-  Send,
-  Smile,
-  Video,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-
-interface MessageType {
-  type: "client" | "server";
-  message: string;
-}
+import axios from "axios";
+import { EllipsisIcon, PhoneCallIcon, Send, Smile, Video } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import Cookies from "js-cookie";
 
 export default function ChatPlayground() {
   const [message, setMessage] = useState("");
-  // const [messages, setMessages] = useState<MessageType[]>([]);
-  const user = useUserStore((state) => state.user);
-  const selectedUser = useChatStore((state) => state.selectedUser);
-  const setMessages = useChatStore((state) => state.setMessages);
-  const messages = useChatStore((state) => state.messages);
+
+  const user = useUserStore((s) => s.user);
+  const selectedUser = useChatStore((s) => s.selectedUser);
+  const messages = useChatStore((s) => s.messages);
+  const setMessages = useChatStore((s) => s.setMessages);
+  const getMessages = useChatStore((s) => s.getMessages);
+  const clearMessages = useChatStore((s) => s.clearMessages);
+
   const { client } = useWebSocket();
   const ws = client?.socket;
 
-  const roomId = [user?.username, selectedUser?.username].sort().join("_");
+  const token = Cookies.get("token");
 
-  const onClicksendMessage = () => {
-    if (!ws && !message.trim() && selectedUser && user) return;
-    if (ws) {
-      ws.send(
-        JSON.stringify({
-          type: "chat",
-          receiverId: selectedUser?._id,
-          roomId,
-          message,
-        }),
-      );
-    }
+  /*--------RoomId-------*/
+  const roomId = useMemo(() => {
+    if (!user || !selectedUser) return "";
+    return [user.username, selectedUser.username].sort().join("_");
+  }, [user, selectedUser]);
+
+  const sendMessage = () => {
+    if (!ws || !message.trim() || !user || !selectedUser) return;
+    const payload = {
+      type: "chat",
+      senderId: user._id,
+      receiverId: selectedUser._id,
+      roomId,
+      message,
+      createdAt: new Date(),
+    };
+    ws.send(JSON.stringify(payload)); // WS
     const data = {
       senderId: user?._id!,
       receiverId: selectedUser?._id!,
       roomId,
       message,
+      createdAt: new Date(),
     };
     setMessages(data);
     setMessage("");
+  };
+
+  //creating Room
+  const createRoom = async () => {
+    if (!roomId || !user) return;
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/createRoom`,
+        {
+          roomId,
+          userId: user?._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(res);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   //Sending Status Update
@@ -73,17 +94,24 @@ export default function ChatPlayground() {
 
   //Sending Join Room
   useEffect(() => {
-    if (ws && selectedUser && user) {
+    if (ws && selectedUser && user && roomId) {
       ws.send(
         JSON.stringify({
           type: "join",
           roomId,
         }),
       );
+      createRoom();
     }
   }, [ws, roomId]);
 
-  if (ws == null) {
+  useEffect(() => {
+    if (!roomId) return;
+    getMessages(roomId);
+    return () => clearMessages();
+  }, [roomId]);
+
+  if (!ws) {
     return (
       <div className='bg-card w-full rounded-md flex-1 flex flex-col items-center justify-center ml-auto'>
         <Loader />
@@ -116,33 +144,54 @@ export default function ChatPlayground() {
         </div>
         <Separator />
         {/* ChatPlayground */}
-        <div className='flex-1 p-4'>
-          {messages.map((m, index) => (
-            <div
-              key={index}
-              className={cn(
-                "flex flex-col p-3 m-2 w-fit rounded-md",
-                m.senderId == user?._id ? "bg-primary ml-auto text-white" : "",
-              )}
-            >
-              {m.receiverId !== selectedUser?._id ? (
-                <div className='flex items-center -ml-6'>
-                  <Avatar className='w-8 h-8'>
-                    <AvatarFallback className='font-bold'>
-                      {selectedUser.username[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p className='bg-secondary p-3 m-2 w-fit rounded-md'>
-                    {m.message}
-                  </p>
-                </div>
-              ) : (
-                <p>{m.message}</p>
-              )}
+        <div className='flex-1 p-4 overflow-y-auto'>
+          {messages.length === 0 ? (
+            <div className='h-full flex items-center justify-center'>
+              <h1 className='text-xl'>No Messages</h1>
             </div>
+          ) : (
+            messages.map((m, index) => {
+              const isMe = String(m.senderId) === String(user?._id);
 
-            // <div key={index}>{m.message}</div>
-          ))}
+              return (
+                <div
+                  key={index}
+                  className={cn(
+                    "flex mb-2",
+                    isMe ? "justify-end" : "justify-start",
+                  )}
+                >
+                  {!isMe && (
+                    <Avatar className='w-8 h-8 mr-2'>
+                      <AvatarFallback className='font-bold'>
+                        {selectedUser.username[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+
+                  <div
+                    className={cn(
+                      "px-4 py-2 max-w-[70%] rounded-xl text-sm",
+                      isMe
+                        ? "bg-primary text-white rounded-br-none"
+                        : "bg-secondary rounded-bl-none",
+                    )}
+                  >
+                    <span>{m.message}</span>
+                    <br />
+                    <span
+                      className={cn(
+                        "text-[10px] self-end",
+                        isMe ? "text-white/70" : "text-muted-foreground",
+                      )}
+                    >
+                      {formatTime(m.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
         {/* SendMessage */}
         <div className='p-4 flex gap-x-2 items-center border-t'>
@@ -154,11 +203,11 @@ export default function ChatPlayground() {
             }}
             onKeyDown={(e) => {
               if (e.key == "Enter") {
-                onClicksendMessage();
+                sendMessage();
               }
             }}
           />
-          <Button onClick={onClicksendMessage}>
+          <Button onClick={sendMessage}>
             <Send />
           </Button>
         </div>

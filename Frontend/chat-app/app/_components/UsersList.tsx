@@ -30,10 +30,10 @@ export default function UsersList() {
   const setSelectedUser = useChatStore((state) => state.setSelectedUser);
   const selectedUser = useChatStore((state) => state.selectedUser);
   const onlineUsers = useChatStore((state) => state.onlineUsers);
-  console.log(onlineUsers);
+  const token = Cookies.get("token");
 
+  // Getting UsersList
   const getUsers = async () => {
-    const token = Cookies.get("token");
     try {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/users`, {
         headers: {
